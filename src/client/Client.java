@@ -2,7 +2,7 @@ package client;
 
 import java.net.InetAddress;
 
-public class Client implements Runnable {
+public class Client {
 
     private Id id;
 
@@ -20,12 +20,10 @@ public class Client implements Runnable {
 
     private InetAddress inetAddress;
 
-    public Client(Id id, Integer number) {
+    public Client(Id id, Integer number, InetAddress inetAddress, Integer PORT) {
         this.id = id;
         this.number = number;
-    }
-
-    @Override
-    public void run() {
+        this.inetAddress = inetAddress;
+        this.PORT = PORT;
     }
 }

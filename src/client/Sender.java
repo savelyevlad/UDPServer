@@ -19,7 +19,7 @@ public class Sender implements Runnable {
     public void run() {
         try {
             DatagramPacket packet = new DatagramPacket(toSend.getFirst().getData(), toSend.getFirst().getLength(),
-                    toSend.getSecond().getInetAddress(), toSend.getSecond().getPORT());
+                                                       toSend.getSecond().getInetAddress(), toSend.getSecond().getPORT());
             datagramSocket.send(packet);
         } catch (IOException e) {
             e.printStackTrace();

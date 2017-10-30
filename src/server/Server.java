@@ -15,7 +15,7 @@ import java.util.LinkedList;
 public class Server implements Runnable {
 
     private DatagramSocket socket;
-    private byte[] buf = new byte[16384];
+    private byte[] buf = new byte[1 << 14];
     private final int PORT = 50000;
 
     private HashMap<Id, Client> clientHashMap = new HashMap<>();
@@ -41,7 +41,7 @@ public class Server implements Runnable {
                 Id id = new Id(datagramPacket.getAddress(), datagramPacket.getPort());
 
                 if(clientHashMap.get(id) == null) {
-                    Client client = new Client(id, clients.size());
+                    Client client = new Client(id, clients.size(), datagramPacket.getAddress(), datagramPacket.getPort());
                     clientHashMap.put(id, client);
                     clients.add(client);
                 }
