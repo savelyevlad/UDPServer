@@ -41,6 +41,7 @@ public class Server implements Runnable {
                 Id id = new Id(datagramPacket.getAddress(), datagramPacket.getPort());
 
                 if(clientHashMap.get(id) == null) {
+                    System.out.println("Client #" + clients.size() + " was connected");
                     Client client = new Client(id, clients.size(), datagramPacket.getAddress(), datagramPacket.getPort());
                     clientHashMap.put(id, client);
                     clients.add(client);
