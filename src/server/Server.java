@@ -44,7 +44,9 @@ public class Server implements Runnable {
                     System.out.println("Client #" + clients.size() + " was connected");
                     Client client = new Client(id, clients.size(), datagramPacket.getAddress(), datagramPacket.getPort());
                     clientHashMap.put(id, client);
+                    respond(client);
                     clients.add(client);
+                    continue;
                 }
 
                 Integer number = (int) datagramPacket.getData()[0];
@@ -61,5 +63,10 @@ public class Server implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void respond(Client client) throws IOException {
+        DatagramPacket packet = new DatagramPacket(new byte[]{Byte.valueOf(String.valueOf(client.getNumber()))}, 1, client.getInetAddress(), client.getPORT());
+        socket.send(packet);
     }
 }

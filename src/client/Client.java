@@ -6,6 +6,10 @@ public class Client {
 
     private Id id;
 
+    public Integer getNumber() {
+        return number;
+    }
+
     private Integer number;
 
     public Integer getPORT() {
