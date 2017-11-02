@@ -9,14 +9,13 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Server implements Runnable {
 
     private DatagramSocket socket;
-    private byte[] buf = new byte[1 << 14];
+    private byte[] buf = new byte[66560];
     private final int PORT = 50000;
 
     private HashMap<Id, Client> clientHashMap = new HashMap<>();
