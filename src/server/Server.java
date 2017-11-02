@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -29,9 +30,19 @@ public class Server implements Runnable {
         }
     }
 
+    private byte[] deleteFirstAndSecondBytes(DatagramPacket datagramPacket) {
+        byte[] ans = new byte[datagramPacket.getLength() - 2];
+        System.arraycopy(datagramPacket.getData(), 2, ans, 0, datagramPacket.getLength() - 2);
+        return ans;
+    }
+
     @Override
     public void run() {
         System.out.println("Server was started");
+
+        // 1 byte - type
+        // 2 byte - number
+        // rest - data
 
         while(true) {
             try {
@@ -49,7 +60,11 @@ public class Server implements Runnable {
                     continue;
                 }
 
-                Integer number = (int) datagramPacket.getData()[0];
+                Integer number = (int) datagramPacket.getData()[1];
+
+                System.out.println("To " + number + " client packet with length " + datagramPacket.getLength());
+
+                datagramPacket = new DatagramPacket(deleteFirstAndSecondBytes(datagramPacket), datagramPacket.getLength() - 2, datagramPacket.getAddress(), datagramPacket.getPort());
 
                 // TODO: if(number < clients.size()) {}
 
@@ -59,7 +74,7 @@ public class Server implements Runnable {
                 Thread thread = new Thread(new Sender(toSend, socket));
                 thread.setPriority(Thread.MIN_PRIORITY);
                 thread.start();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
