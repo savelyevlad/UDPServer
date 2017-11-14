@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -29,9 +30,12 @@ public class Server implements Runnable {
         }
     }
 
-    private byte[] deleteFirstAndSecondBytes(DatagramPacket datagramPacket) {
-        byte[] ans = new byte[datagramPacket.getLength() - 2];
-        System.arraycopy(datagramPacket.getData(), 2, ans, 0, datagramPacket.getLength() - 2);
+    private byte[] deleteFirstByte(DatagramPacket datagramPacket) {
+//        byte[] ans = new byte[datagramPacket.getLength() - 2];
+//        System.arraycopy(datagramPacket.getData(), 2, ans, 0, datagramPacket.getLength() - 2);
+//        return ans;
+        byte[] ans = new byte[datagramPacket.getLength() - 1];
+        System.arraycopy(datagramPacket.getData(), 1, ans, 0, datagramPacket.getLength() - 1);
         return ans;
     }
 
@@ -39,8 +43,7 @@ public class Server implements Runnable {
     public void run() {
         System.out.println("Server was started");
 
-        // 1 byte - type
-        // 2 byte - number
+        // 0 byte - number
         // rest - data
 
         while(true) {
@@ -59,11 +62,13 @@ public class Server implements Runnable {
                     continue;
                 }
 
-                Integer number = (int) datagramPacket.getData()[1];
+                Integer number = (int) datagramPacket.getData()[0];
 
-                System.out.println("To " + number + " client packet with length " + datagramPacket.getLength());
+//                System.out.println("To " + number + " client packet with length " + datagramPacket.getLength());
+//                System.out.println(Arrays.toString(datagramPacket.getData()));
 
-                datagramPacket = new DatagramPacket(deleteFirstAndSecondBytes(datagramPacket), datagramPacket.getLength() - 2, datagramPacket.getAddress(), datagramPacket.getPort());
+                System.out.println("length: " + datagramPacket.getLength() + " gl:" + datagramPacket.getData().length);
+                datagramPacket = new DatagramPacket(deleteFirstByte(datagramPacket), datagramPacket.getLength() - 1, datagramPacket.getAddress(), datagramPacket.getPort());
 
                 // TODO: if(number < clients.size()) {}
 
