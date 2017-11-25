@@ -1,6 +1,7 @@
 package client;
 
 import java.net.InetAddress;
+import java.util.LinkedList;
 
 public class Client {
 
@@ -29,5 +30,11 @@ public class Client {
         this.number = number;
         this.inetAddress = inetAddress;
         this.PORT = PORT;
+    }
+
+    private LinkedList<Client> listenets = new LinkedList<>();
+
+    public LinkedList<Client> getListenets() {
+        return listenets;
     }
 }

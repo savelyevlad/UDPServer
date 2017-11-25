@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -30,10 +29,13 @@ public class Server implements Runnable {
         }
     }
 
+    private byte[] deleteFirstAndSecondBytes(DatagramPacket datagramPacket) {
+        byte[] ans = new byte[datagramPacket.getLength() - 2];
+        System.arraycopy(datagramPacket.getData(), 2, ans, 0, datagramPacket.getLength() - 2);
+        return ans;
+    }
+
     private byte[] deleteFirstByte(DatagramPacket datagramPacket) {
-//        byte[] ans = new byte[datagramPacket.getLength() - 2];
-//        System.arraycopy(datagramPacket.getData(), 2, ans, 0, datagramPacket.getLength() - 2);
-//        return ans;
         byte[] ans = new byte[datagramPacket.getLength() - 1];
         System.arraycopy(datagramPacket.getData(), 1, ans, 0, datagramPacket.getLength() - 1);
         return ans;
@@ -43,13 +45,23 @@ public class Server implements Runnable {
     public void run() {
         System.out.println("Server was started");
 
-        // 0 byte - number
-        // rest - data
+        // 0 byte - type
+        // types:
+        // -1 -> start recording
+        // -2 -> end recording
+        // -3 -> joined sharing
+        // -4 -> stopped joining sharing
 
         while(true) {
             try {
                 DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                 socket.receive(datagramPacket);
+
+                if(datagramPacket.getData()[0] != 14 && datagramPacket.getData()[1] != 88) {
+                    continue;
+                }
+
+                datagramPacket.setData(deleteFirstAndSecondBytes(datagramPacket));
 
                 Id id = new Id(datagramPacket.getAddress(), datagramPacket.getPort());
 
@@ -62,22 +74,42 @@ public class Server implements Runnable {
                     continue;
                 }
 
-                Integer number = (int) datagramPacket.getData()[0];
+                if(datagramPacket.getData()[0] == -1) {
+                    datagramPacket = new DatagramPacket(deleteFirstByte(datagramPacket), datagramPacket.getLength() - 1, datagramPacket.getAddress(), datagramPacket.getPort());
+                    for(Client client : clientHashMap.get(id).getListenets()) {
+                        Pair<DatagramPacket, Client> toSend = new Pair<>(datagramPacket, client);
+                        Thread thread = new Thread(new Sender(toSend, socket));
+                        thread.setPriority(Thread.MIN_PRIORITY);
+                        thread.start();
+                    }
+                }
+                else if(datagramPacket.getData()[0] == -2) {
+                    // TODO: breaking translation
+                }
+                else if(datagramPacket.getData()[0] == -3) {
+                    int i = datagramPacket.getData()[1];
+                    clients.get(i).getListenets().add(clientHashMap.get(id));
+                }
+                else if(datagramPacket.getData()[0] == -4) {
+                    // TODO: stopped joining sharing
+                }
+
+//                Integer number = (int) datagramPacket.getData()[0];
 
 //                System.out.println("To " + number + " client packet with length " + datagramPacket.getLength());
 //                System.out.println(Arrays.toString(datagramPacket.getData()));
 
-                System.out.println("length: " + datagramPacket.getLength() + " gl:" + datagramPacket.getData().length);
-                datagramPacket = new DatagramPacket(deleteFirstByte(datagramPacket), datagramPacket.getLength() - 1, datagramPacket.getAddress(), datagramPacket.getPort());
+//                System.out.println("length: " + datagramPacket.getLength() + " gl:" + datagramPacket.getData().length);
+//                datagramPacket = new DatagramPacket(deleteFirstByte(datagramPacket), datagramPacket.getLength() - 1, datagramPacket.getAddress(), datagramPacket.getPort());
 
-                // TODO: if(number < clients.size()) {}
+//                Client client = clients.get(number);
+//                Pair<DatagramPacket, Client> toSend = new Pair<>(datagramPacket, client);
 
-                Client client = clients.get(number);
-                Pair<DatagramPacket, Client> toSend = new Pair<>(datagramPacket, client);
+//                System.out.println("To " + toSend.getSecond().getNumber() + " client packet with length " + datagramPacket.getData().length + " " + (counter++));
 
-                Thread thread = new Thread(new Sender(toSend, socket));
-                thread.setPriority(Thread.MIN_PRIORITY);
-                thread.start();
+//                Thread thread = new Thread(new Sender(toSend, socket));
+//                thread.setPriority(Thread.MIN_PRIORITY);
+//                thread.start();
             } catch (Exception e) {
                 e.printStackTrace();
             }

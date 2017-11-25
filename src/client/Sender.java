@@ -21,9 +21,7 @@ public class Sender implements Runnable {
         try {
             DatagramPacket packet = new DatagramPacket(toSend.getFirst().getData(), toSend.getFirst().getLength(),
                                                        toSend.getSecond().getInetAddress(), toSend.getSecond().getPORT());
-
-            System.out.println("To " + toSend.getSecond().getNumber() + " client packet with length " + packet.getData().length);
-            System.out.println(Arrays.toString(packet.getData()));
+//            System.out.println(Arrays.toString(packet.getData()));
 
             datagramSocket.send(packet);
         } catch (IOException e) {
