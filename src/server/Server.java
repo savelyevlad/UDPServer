@@ -19,6 +19,7 @@ public class Server implements Runnable {
     private final int PORT = 50000;
 
     private HashMap<Id, Client> clientHashMap = new HashMap<>();
+    private HashMap<Id, Client> clientsStreamers = new HashMap<>();
     private LinkedList<Client> clients = new LinkedList<>();
 
     public Server() {
@@ -57,11 +58,15 @@ public class Server implements Runnable {
                 DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                 socket.receive(datagramPacket);
 
+                System.out.println("Something was received. Size = " + datagramPacket.getLength());
+
                 if(datagramPacket.getData()[0] != 14 && datagramPacket.getData()[1] != 88) {
                     continue;
                 }
 
                 datagramPacket.setData(deleteFirstAndSecondBytes(datagramPacket));
+
+                System.out.println("first byte = " + datagramPacket.getData()[0]);
 
                 Id id = new Id(datagramPacket.getAddress(), datagramPacket.getPort());
 
@@ -75,12 +80,19 @@ public class Server implements Runnable {
                 }
 
                 if(datagramPacket.getData()[0] == -1) {
-                    datagramPacket = new DatagramPacket(deleteFirstByte(datagramPacket), datagramPacket.getLength() - 1, datagramPacket.getAddress(), datagramPacket.getPort());
-                    for(Client client : clientHashMap.get(id).getListenets()) {
-                        Pair<DatagramPacket, Client> toSend = new Pair<>(datagramPacket, client);
-                        Thread thread = new Thread(new Sender(toSend, socket));
-                        thread.setPriority(Thread.MIN_PRIORITY);
-                        thread.start();
+                    if(clientsStreamers.get(id) == null) {
+                        clientsStreamers.put(id, clientHashMap.get(id));
+                        Client client = clientsStreamers.get(id);
+                        socket.send(new DatagramPacket(new byte[] {client.getNumber().byteValue()}, 1, client.getInetAddress(), client.getPORT()));
+                    }
+                    else {
+                        datagramPacket = new DatagramPacket(deleteFirstByte(datagramPacket), datagramPacket.getLength() - 1, datagramPacket.getAddress(), datagramPacket.getPort());
+                        for(Client client : clientHashMap.get(id).getListenets()) {
+                            Pair<DatagramPacket, Client> toSend = new Pair<>(datagramPacket, client);
+                            Thread thread = new Thread(new Sender(toSend, socket));
+                            thread.setPriority(Thread.MIN_PRIORITY);
+                            thread.start();
+                        }
                     }
                 }
                 else if(datagramPacket.getData()[0] == -2) {
@@ -88,6 +100,7 @@ public class Server implements Runnable {
                 }
                 else if(datagramPacket.getData()[0] == -3) {
                     int i = datagramPacket.getData()[1];
+                    System.out.println("Client #" + clientHashMap.get(id).getNumber() + " joined client #" + i);
                     clients.get(i).getListenets().add(clientHashMap.get(id));
                 }
                 else if(datagramPacket.getData()[0] == -4) {
